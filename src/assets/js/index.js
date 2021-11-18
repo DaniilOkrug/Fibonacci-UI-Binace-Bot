@@ -1,57 +1,26 @@
-const URL = '123';
+import * as responses from './responses'; //Only for tests
 
-const initialApiState = {
-    'apiKey': '1123',
-}
+import { Setting } from './store/settings';
+import * as variables from './variables';
+import * as requests from './requests';
+import { setPairSettings, clearSettings, generateFiboLevels,sendPairNewSettings } from './functionality';
 
-const activePairs = [
-    {
-        "symbol": "BTCUSDT",
-        "levelCount": 1,
-        "levels": [
-            {
-                "level": "0.1",
-                "amount": "10",
-                "takeProfit": "0.2",
-                "stopLoss": "0.13"
-            }
-        ]
-    },
-    {
-        "symbol": "ETHUSDT",
-        "levelCount": 2,
-        "levels": [
-            {
-                "level": "0.1",
-                "amount": "10",
-                "takeProfit": "0.2",
-                "stopLoss": "0.13"
-            },
-            {
-                "level": "0.5",
-                "amount": "20",
-                "takeProfit": "0.3",
-                "stopLoss": "0.56"
-            }
-        ]
-    }
-
-]
 
 document.addEventListener('DOMContentLoaded', () => {
-
+    const settings = new Setting(responses.pairSettings);
+    const newSettings = new Setting(responses.pairSettings);
     //--Initial API states--
-    inputApiKey = document.getElementById('api-key-active');
+    const inputApiKey = document.getElementById('api-key-active');
 
-    // !!!! const initialState = JSON.parse(getRequest("initialStateURL"));
-
+    // !!!! const initialState = JSON.parse(requests.get("initialStateURL"));
+    let initialApiState = responses.initialApiState;
     inputApiKey.innerHTML = initialApiState.apiKey;
 
     //--Active pairs--
     let activePairsContainer = document.querySelector('div.activePairs ul.list-group');
 
-    // !!!! const acrivePairs = JSON.parse(getRequest("activePairsURL"));
-
+    // !!!! const acrivePairs = JSON.parse(requests.get("activePairsURL"));
+    let activePairs = responses.activePairs;
 
     activePairsContainer.innerHTML = '';
     if (activePairs.length > 0) {
@@ -71,120 +40,76 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    //--Settings--
+
     let settingsButtons = document.querySelectorAll("button.settings-orders");
     settingsButtons.forEach(button => {
         button.addEventListener('click', () => {
-            const pair_title = document.querySelector('#pairSettings span.pair');
+            // variables.pairSettings = JSON.parse(getRequest(`/symbols?symbol=${button.name}`));
+            settings.update = responses.pairSettings;
 
-            const cycleDuration = document.querySelector('#pairSettings #cycle-duration');
-            const delay = document.querySelector('#pairSettings #cycle-delay');
-
-            const price1 = document.querySelector('#pairSettings ');
-
-            const fiboContainer = document.querySelector('#pairSettings div.fibo-container');
-            const levelsNumber = document.querySelector('#pairSettings #orders-number');
-
-            // let pairSettings = JSON.parse(getRequest(`/symbols?symbol=${button.name}`));
-            let pairSettings = {
-                "symbol": "ETHUSDT",
-                "waitSignal": true,
-                "cycleDuration": 25, //minutes
-                "delay": 1, //minutes
-                "price1": 123,
-                "price2": 321,
-                "levelCount": 2,
-                "levels": [
-                    {
-                        "level": "0.1", //fibo
-                        "amount": "10", //$
-                        "takeProfit": "0.2", //fibo
-                        "stopLoss": "0.13" //fibo
-                    },
-                    {
-                        "level": "0.5",
-                        "amount": "20",
-                        "takeProfit": "0.3",
-                        "stopLoss": "0.56"
-                    }
-                ]
-            }
-
-            pair_title.innerHTML = pairSettings.symbol;
-
-            cycleDuration.value = pairSettings.cycleDuration;
-            delay.value = pairSettings.delay;
-            levelsNumber.value = pairSettings.levelCount;
-            
-            if (pairSettings.waitSignal) {
-                cycleDuration.disabled = true;
-            } else {
-                cycleDuration.disabled = false;
-            }
-
-            fiboContainer.innerHTML = '';
-            pairSettings.levels.forEach((fibo) => {
-                fiboContainer.insertAdjacentHTML('beforeend', `
-                    <div class="row">
-                        <div class="col">
-                            <div class="input-group mb-3">
-                                <input id="fibo-level" type="text" class="form-control" value="${fibo.level}" aria-label="Fibo level"
-                                    aria-describedby="Fibo level">
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="input-group mb-3">
-                                <input id="profit" type="text" class="form-control" value="${fibo.amount}" aria-label="profit"
-                                    aria-describedby="profit">
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="input-group mb-3">
-                                <input id="takeprofit" type="text" class="form-control" value="${fibo.takeProfit}" aria-label="takeprofit"
-                                    aria-describedby="takeprofit">
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="input-group mb-3">
-                                <input id="stoploss" type="text" class="form-control" value="${fibo.stopLoss}" aria-label="stoploss"
-                                    aria-describedby="stoploss">
-                            </div>
-                        </div>
-                    </div>
-                `);
-            });
-
+            const pairTitle = document.querySelector('#pairSettings span.pair');
+            pairTitle.innerHTML = settings.current.symbol;
+            setPairSettings(settings.current, true);
         });
     });
 
+    //Generate initial list of templates
+    const templates = responses.templates;
+    const templateContainer = document.querySelector('#pairSettings #pair-template');
+    templateContainer.innerHTML = `
+        <option value="none">Пустой</option>
+        <option value="default">Настройки пары</option>
+        `;
+    for (let i = 0; i < templates.length; i++) {
+        templateContainer.insertAdjacentHTML('beforeend', variables.templateOption(i, templates[i].name));
+    }
+
+    //Set template setting to pair
+    templateContainer.addEventListener('change', () => {
+        const pairTemplate = document.querySelector('#pairSettings #pair-template');
+
+        let activeTemplate = {}
+        for (let i = 0; i < templates.length; i++) {
+            if (pairTemplate.selectedOptions[0].text == templates[i].name) {
+                activeTemplate = templates[i];
+                break;
+            }
+            
+        }
+
+        switch(templateContainer.selectedOptions[0].value) {
+            case 'none':
+                clearSettings();
+                break;
+            case 'default':
+                setPairSettings(settings.current);
+                break;
+            default:
+                setPairSettings(activeTemplate);
+                break;
+        }
+    });
+
+    //Wait next signal checkbox
+    const waitSignal_checkBox = document.querySelector('#pairSettings #waitSignal');
+    const cycleDutarion_input = document.getElementById('cycle-duration');
+    waitSignal_checkBox.addEventListener('click', () => {
+        if (waitSignal_checkBox.checked) cycleDutarion_input.disabled = true;
+        else cycleDutarion_input.disabled = false;
+    });
+
+    //Generate orders
+    const ordersNumber_input = document.querySelector('#pairSettings #orders-number');
+    const chooseOrdersNumber_button = document.querySelector('#pairSettings button.choose-orders-number');
+    chooseOrdersNumber_button.addEventListener('click', () => {
+        const levelsNumber = ordersNumber_input.value;
+        generateFiboLevels(settings.current, levelsNumber);
+    });
+
+    //Save button sends new date to the server
+    const save_button = document.querySelector('#pairSettings #save');
+    save_button.addEventListener('click', () => {
+        sendPairNewSettings();
+    });
 });
-
-function getRequest(additionalURL) {
-    var xhr = new XMLHttpRequest();
-
-    xhr.open('GET', URL + additionalURL, false);
-    xhr.send();
-
-    if (xhr.status != 200) {
-        //Error
-        alert(xhr.status + ': ' + xhr.statusText);
-    } else {
-        return xhr.responseText;
-    }
-}
-
-function postRequest(body, header) {
-    var xhr = new XMLHttpRequest();
-
-    xhr.open('GET', URL, false);
-
-    xhr.setRequestHeader('Content-Type', header);
-
-    xhr.send(body);
-
-    if (xhr.status != 200) {
-        //Error
-        alert(xhr.status + ': ' + xhr.statusText);
-    } else {
-        return xhr.responseText;
-    }
-}
