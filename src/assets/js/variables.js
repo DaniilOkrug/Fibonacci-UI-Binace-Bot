@@ -1,4 +1,22 @@
-export const URL = '123';
+export const URL = '123/';
+
+export function activePair(symbol) { 
+    return `
+    <li class="list-group-item">
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="align-middle">${symbol}</span>
+            <div class="btn-group">
+                <button name="${symbol}" type="button" class="settings-orders btn btn-sm btn-primary mx-4" data-bs-toggle="modal"
+                    data-bs-target="#pairSettings">Настройка</button>
+                <button name="${symbol}" type="button" class="close-orders btn btn-sm btn-warning">Закрыть сделки</button>
+            </div>
+        </div>
+    </li>`;
+}
+
+export function avalablePair(optionNumber, pair) {
+    return `<option value="${optionNumber}">${pair}</option>`;
+}
 
 export const fiboEmptyLevel = `
     <div class="row">
@@ -58,4 +76,4 @@ export function fiboLevel(level, amount, takeProfit, stopLoss) {
     </div>`;
 }
 
-export function templateOption(value, text){ return `<option value="${value}">${text}</option>`;}
+export function templateOption(value, text) { return `<option value="${value}">${text}</option>`; }

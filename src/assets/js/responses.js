@@ -3,6 +3,14 @@ export const initialApiState = {
     'apiKey': '1123',
 }
 
+//GET /availablePairs
+export const avalablePairs = [
+    "XRPUSDTPERP",
+    "ADAUSDTPERP",
+    "DASHUSDTPERP",
+    "ATOMUSDTPERP"
+]
+
 //GET /activePairs
 export const activePairs = [
     {
@@ -41,11 +49,11 @@ export const activePairs = [
 export const pairSettings = {
     "symbol": "ETHUSDT",
     "template": "My", //"name" or ""
-    "waitSignal": true,
-    "cycleDuration": 25, //minutes
+    "waitSignal": false,
+    "cycleDuration": 100, //minutes
     "delay": 1, //minutes
-    "price1": 123,
-    "price2": 321,
+    "price1": 61238182,
+    "price2": 312793719,
     "levelCount": 2,
     "levels": [
         {
@@ -66,7 +74,7 @@ export const pairSettings = {
 //GET /templates
 export const templates = [{
     "name": "Default",
-    "waitSignal": true,
+    "waitSignal": false,
     "cycleDuration": 100, //minutes
     "delay": 1, //minutes
     "price1": 61238182,
