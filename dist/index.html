@@ -23,7 +23,7 @@
                             <button type="button" class="btn" data-bs-toggle="modal"
                                 data-bs-target="#connectAPI">Подключить API</button>
                         </li>
-
+                    </ul>
                 </div>
             </div>
         </nav>
@@ -52,7 +52,7 @@
                 <label for="basic-url" class="form-label mt-4">Название пары</label>
                 <div class="input-group">
                     <select id="available-pairs" class="form-select">
-                        
+
                     </select>
                 </div>
 
@@ -146,7 +146,8 @@
                         <hr>
 
                         <div class="d-flex justify-content-between">
-                            <button id="saveTemplate" type="button" class="btn btn-primary">Coхранить темплейт</button>
+                            <button type="button" class="saveTemplate btn btn-warning" data-bs-toggle="modal"
+                                data-bs-target="#saveAsTemplate">Coхранить темплейт</button>
                             <button id="addNewPair" type="button" class="btn btn-primary">Добавить новую пару</button>
                         </div>
                     </div>
@@ -196,7 +197,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
@@ -216,7 +217,7 @@
                     <div class="modal-body">
                         <label for="basic-url" class="form-label">Название темплейта</label>
                         <div class="input-group mb-3">
-                            <input id="template-name" type="text" class="form-control" aria-label="Template Name"
+                            <input type="text" class="template-name form-control" aria-label="Template Name"
                                 aria-describedby="Template Name">
                         </div>
                     </div>
@@ -233,19 +234,30 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h3 class="modal-title">Настройки пары <span class="pair"></span></h3>
-                        <select id="pair-template" class="form-select">
-
-                        </select>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
 
                     <div class="modal-body">
+                        <div class="template">
+                            <h4>Темплейт</h4>
+                            <select id="pair-template" class="form-select">
+
+                            </select>
+                            <div class="newTemplate mt-3">
+                                <label class="form-label">Название нового темплейта</label>
+                                <input type="text" class="template-name form-control" min="0"
+                                    aria-label="Fibo levels" aria-describedby="Fibo levels">
+                            </div>
+                        </div>
+
+                        <hr>
+
                         <div class="additional-settings">
                             <h4>Настройки времени</h4>
 
                             <hr style="width: 25%;">
 
-                            <label for="basic-url" class="form-label">Продолжительность цикла(в минутах)</label>
+                            <label class="form-label">Продолжительность цикла(в минутах)</label>
                             <div class="row">
                                 <div class="col">
                                     <div class="input-group mb-3">
@@ -264,8 +276,8 @@
 
                             <label for="basic-url" class="form-label">Задержка(в минутах)</label>
                             <div class="input-group mb-3">
-                                <input id="cycle-delay" type="number" class="form-control" min="0"   aria-label="Fibo levels"
-                                    aria-describedby="Fibo levels">
+                                <input id="cycle-delay" type="number" class="form-control" min="0"
+                                    aria-label="Fibo levels" aria-describedby="Fibo levels">
                             </div>
                         </div>
 
@@ -335,6 +347,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger me-auto">Удалить пару</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="button" class="saveTemplate btn btn-primary">Сохранить темпелейт</button>
                         <button id="save" type="button" class="btn btn-primary">Сохранить</button>
                     </div>
                 </div>

@@ -1,6 +1,44 @@
 import { fiboLevel, fiboEmptyLevel } from './variables';
 import { post } from './requests';
 
+export function sendNewTemplate(requestBody, URL) {
+        //Validate input values
+        if(!validatePairSettings({
+            "name": requestBody.name,
+            "cycleDuration": requestBody.cycleDuration,
+            "delay": requestBody.delay,
+            "price1": requestBody.price1,
+            "price2": requestBody.price2,
+            "levelCount": requestBody.levelCount,
+            "fiboContainer": requestBody.fiboContainer
+        })) return
+    
+        const levels = [];
+    
+        for (let i = 0; i < requestBody.fiboContainer.childElementCount; i++) {
+            const order = requestBody.fiboContainer.children[i];
+            const level = {
+                "level": order.querySelector('#fibo-level').value,
+                "amount": order.querySelector('#profit').value,
+                "takeProfit": order.querySelector('#takeprofit').value,
+                "stopLoss": order.querySelector('#stoploss').value  
+            }
+    
+            levels[i] = level;
+        }
+        requestBody.levels = levels;
+    
+        delete requestBody.fiboContainer;
+    
+        requestBody.template = templateName;
+    
+        console.log(requestBody);
+        requestBody = JSON.stringify(requestBody);
+    
+        console.log('Send POST request to ' + URL);
+        // post(requestBody, "application/json;charset=UTF-8");
+}
+
 /**
  * 
  * @param {Object} form object of the HTML elements
@@ -9,7 +47,6 @@ import { post } from './requests';
  * @returns 
  */
 export function sendPairSettings(requestBody, templates, URL) {
-
     //Validate input values
     if(!validatePairSettings({
         "cycleDuration": requestBody.cycleDuration,

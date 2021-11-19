@@ -105,6 +105,34 @@ document.addEventListener('DOMContentLoaded', () => {
         generateFiboLevels(fiboContainer, settings.current, levelsNumber);
     });
 
+    //Save current setting in the template
+    const saveTemplate_button = document.querySelector('#pairSettings button.saveTemplate');
+    saveTemplate_button.addEventListener('click', () => {
+        const templateName_input = document.querySelector('#pairSettings input.template-name');
+
+        const cycleDuration_input = document.querySelector('#pairSettings #cycle-duration');
+        const waitSignal_checkBox = document.querySelector('#pairSettings #waitSignal');
+        const delay_input = document.querySelector('#pairSettings #cycle-delay');
+
+        const price1_input = document.querySelector('#pairSettings #price1-fibo');
+        const price2_input = document.querySelector('#pairSettings #price2-fibo');
+
+        const fiboContainer = document.querySelector('#pairSettings div.fibo-container');
+        const ordersNumber_input = document.querySelector('#pairSettings #orders-number');
+
+        sendNewTemplate({
+            "name": templateName_input.value, 
+            "waitSignal": waitSignal_checkBox.checked,
+            "cycleDuration": cycleDuration_input.value, //minutes
+            "delay": delay_input.value, //minutes
+            "price1": price1_input.value,
+            "price2": price2_input.value,
+            "levelCount": ordersNumber_input.value,
+            "fiboContainer": fiboContainer
+        }, 'newTemplate')
+    });
+
+
     //Save button sends new date to the server
     const save_button = document.querySelector('#pairSettings #save');
     save_button.addEventListener('click', () => {
