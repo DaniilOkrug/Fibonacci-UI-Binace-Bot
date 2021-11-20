@@ -1,25 +1,54 @@
 import * as responses from './responses'; //Only for tests
 
 import { Setting } from './store/settings';
+import { Templates } from './store/templates';
+import {
+    setPairSettings, clearSettings, generateFiboLevels, sendPairSettings,
+    sendNewTemplate, setTemplatesList, setAvailablePairs, setSettingsTemplatesList, setNewPairSettings, clearNewPairSettings
+} from './functionality';
 import * as variables from './variables';
 import * as requests from './requests';
-import { setPairSettings, clearSettings, generateFiboLevels, sendPairSettings } from './functionality';
-import { Templates } from './store/templates';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const settings = new Setting(responses.pairSettings);
+    const settings = new Setting();
     const templates = new Templates(responses.templates);
-    //--Initial API states--
+
+    //Global variables
+    let activePairsContainer = document.querySelector('div.activePairs ul.list-group');
+    const availablePairsContainer = document.querySelector('div.newPair #available-pairs');
+    const templateContainer = document.querySelector('div.newPair #pair-template');
+    const templateContainer_settings = document.querySelector('#pairSettings #pair-template');
+
+    //--API keys--
     const inputApiKey = document.getElementById('api-key-active');
 
     // !!!! const initialState = JSON.parse(requests.get("initialStateURL"));
     let initialApiState = responses.initialApiState;
     inputApiKey.innerHTML = initialApiState.apiKey;
 
-    //--Active pairs--
-    let activePairsContainer = document.querySelector('div.activePairs ul.list-group');
+    //Connect API
+    const connectAPI_button = document.querySelector('#connectAPI #connect');
+    connectAPI_button.addEventListener('click', () => {
+        const apiKeyInput = document.querySelector('#connectAPI #api-key');
+        const apiSecretKeyInput = document.querySelector('#connectAPI #secret-key');
 
-    // !!!! const acrivePairs = JSON.parse(requests.get("activePairsURL"));
+        if (apiKeyInput.value == '' || apiSecretKeyInput.value == '') {
+            alert('Ключи не заданы');
+            return;
+        }
+
+        const requestBody = {
+            'key': apiKeyInput.value,
+            'secret': apiSecretKeyInput.value
+        };
+
+        requests.post(requestBody, 'connectApi');
+
+        const apiKey = JSON.parse(requests.get('api'));
+    });
+    //--Active pairs--
+
+    // !!!! const acrivePairs = JSON.parse(requests.get("activePairs"));
     let activePairs = responses.activePairs;
 
     activePairsContainer.innerHTML = '';
@@ -29,21 +58,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const closeOrders_buttons = document.querySelectorAll('div.activePairs button.close-orders');
+    closeOrders_buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+            console.log(`Request to closeOrders?symbol=${button.name}`);
+
+            // !!!! const activePairs = JSON.parse(requests.get(`closeOrders?symbol=${button.name}`));
+            let activePairs = responses.activePairsNew;
+            activePairsContainer.innerHTML = '';
+            if (activePairs.length > 0) {
+                activePairs.forEach(pair => {
+                    activePairsContainer.insertAdjacentHTML('beforeend', variables.activePair(pair.symbol));
+                });
+            }
+        });
+    })
+
     //--Available Pairs--
     // let avalablePairs = JSON.parse(requests.get('avalablePairs'));
     let avalablePairs = responses.avalablePairs;
 
-    const availablePairsContainer = document.querySelector('div.newPair #available-pairs');
-    availablePairsContainer.innerHTML = '';
-    for (let i = 0; i < avalablePairs.length; i++) {
-        availablePairsContainer.insertAdjacentHTML('beforeend', variables.avalablePair(i, avalablePairs[i]));
-    }
+    setAvailablePairs(availablePairsContainer, avalablePairs);
 
     //--Settings--
     let settingsButtons = document.querySelectorAll("button.settings-orders");
     settingsButtons.forEach(button => {
         button.addEventListener('click', () => {
-            // variables.pairSettings = JSON.parse(getRequest(`/symbols?symbol=${button.name}`));
+            // variables.pairSettings = JSON.parse(requests.get(`settings?symbol=${button.name}`));
             settings.update = responses.pairSettings;
 
             const pairTitle = document.querySelector('#pairSettings span.pair');
@@ -53,17 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     //Generate initial list of templates
-    const templateContainer = document.querySelector('#pairSettings #pair-template');
-    templateContainer.innerHTML = `
-        <option value="none">Пустой</option>
-        <option value="default">Настройки пары</option>
-        `;
-    for (let i = 0; i < templates.current.length; i++) {
-        templateContainer.insertAdjacentHTML('beforeend', variables.templateOption(i, templates.current[i].name));
-    }
+    setTemplatesList(templateContainer_settings, templates.current);
 
     //Set template setting to pair
-    templateContainer.addEventListener('change', () => {
+    templateContainer_settings.addEventListener('change', () => {
         const pairTemplate = document.querySelector('#pairSettings #pair-template');
 
         let activeTemplate = {}
@@ -72,10 +106,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 activeTemplate = templates.current[i];
                 break;
             }
-
         }
-
-        switch (templateContainer.selectedOptions[0].value) {
+        // const pairSettings = JSON.parse(getRequest(`settings?symbol=${button.name}`));
+        settings.update = responses.pairSettings;
+        switch (templateContainer_settings.selectedOptions[0].value) {
             case 'none':
                 clearSettings();
                 break;
@@ -106,8 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     //Save current setting in the template
-    const saveTemplate_button = document.querySelector('#pairSettings button.saveTemplate');
-    saveTemplate_button.addEventListener('click', () => {
+    const saveTemplate_Modalbutton = document.querySelector('#pairSettings button.saveTemplate');
+    saveTemplate_Modalbutton.addEventListener('click', () => {
         const templateName_input = document.querySelector('#pairSettings input.template-name');
 
         const cycleDuration_input = document.querySelector('#pairSettings #cycle-duration');
@@ -120,8 +154,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const fiboContainer = document.querySelector('#pairSettings div.fibo-container');
         const ordersNumber_input = document.querySelector('#pairSettings #orders-number');
 
-        sendNewTemplate({
-            "name": templateName_input.value, 
+        const requestState = sendNewTemplate({
+            "name": templateName_input.value,
             "waitSignal": waitSignal_checkBox.checked,
             "cycleDuration": cycleDuration_input.value, //minutes
             "delay": delay_input.value, //minutes
@@ -129,11 +163,23 @@ document.addEventListener('DOMContentLoaded', () => {
             "price2": price2_input.value,
             "levelCount": ordersNumber_input.value,
             "fiboContainer": fiboContainer
-        }, 'newTemplate')
+        }, templates.current, 'newTemplate')
+
+        //Request -> Fail
+        if (!requestState) return
+
+        //Request -> Success
+
+        //Get new templates and update lists
+        // templates.current = JSON.parse(requests.get('templates'));
+        templates.update = responses.templates;
+
+        setSettingsTemplatesList(templateContainer, templates.current);
+        setTemplatesList(templateContainer_settings, templates.current);
     });
 
 
-    //Save button sends new date to the server
+    //Save button sends new seetings to the server
     const save_button = document.querySelector('#pairSettings #save');
     save_button.addEventListener('click', () => {
         const pairTitle = document.querySelector('#pairSettings span.pair');
@@ -149,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sendPairSettings({
             "symbol": pairTitle.innerText,
-            "template": '', 
+            "template": '',
             "waitSignal": waitSignal_checkBox.checked,
             "cycleDuration": cycleDuration_input.value, //minutes
             "delay": delay_input.value, //minutes
@@ -161,6 +207,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     //--New pair--
+    //Set templates to templates list
+    setTemplatesList(templateContainer, templates.current);
+
+    //Set template setting to pair
+    templateContainer.addEventListener('change', () => {
+        const pairTemplate = document.querySelector('div.newPair #pair-template');
+
+        let activeTemplate = {}
+        for (let i = 0; i < templates.current.length; i++) {
+            if (pairTemplate.selectedOptions[0].text == templates.current[i].name) {
+                activeTemplate = templates.current[i];
+                break;
+            }
+        }
+
+        switch (templateContainer.selectedOptions[0].value) {
+            case 'none':
+                clearNewPairSettings();
+                break;
+            default:
+                setNewPairSettings(activeTemplate);
+                break;
+        }
+    });
 
     //Wait next signal checkbox
     const waitSignal_checkBox = document.querySelector('div.newPair #waitSignal');
@@ -179,6 +249,44 @@ document.addEventListener('DOMContentLoaded', () => {
         generateFiboLevels(fiboContainer, {}, levelsNumber);
     });
 
+    const saveTemplate_button = document.querySelector('div.newPair button.saveTemplate');
+    saveTemplate_button.addEventListener('click', () => {
+        const templateName_input = document.querySelector('div.newPair input.template-name');
+
+        const cycleDuration_input = document.querySelector('div.newPair #cycle-duration');
+        const waitSignal_checkBox = document.querySelector('div.newPair #waitSignal');
+        const delay_input = document.querySelector('div.newPair #cycle-delay');
+
+        const price1_input = document.querySelector('div.newPair #price1-fibo');
+        const price2_input = document.querySelector('div.newPair #price2-fibo');
+
+        const fiboContainer = document.querySelector('div.newPair div.fibo-container');
+        const ordersNumber_input = document.querySelector('div.newPair #orders-number');
+
+        const requestState = sendNewTemplate({
+            "name": templateName_input.value,
+            "waitSignal": waitSignal_checkBox.checked,
+            "cycleDuration": cycleDuration_input.value, //minutes
+            "delay": delay_input.value, //minutes
+            "price1": price1_input.value,
+            "price2": price2_input.value,
+            "levelCount": ordersNumber_input.value,
+            "fiboContainer": fiboContainer
+        }, templates.current, 'newTemplate')
+
+        //Request -> Fail
+        if (!requestState) return
+
+        //Request -> Success
+
+        //Get new templates and update lists
+        // templates.current = JSON.parse(requests.get('templates'));
+        templates.update = responses.templates;
+
+        setTemplatesList(templateContainer, templates.current);
+        setTemplatesList(templateContainer_settings, templates.current);
+    });
+
     //Add new pair button
     const addNewPair_button = document.querySelector('div.newPair #addNewPair');
     addNewPair_button.addEventListener('click', () => {
@@ -193,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fiboContainer = document.querySelector('div.newPair div.fibo-container');
         const ordersNumber_input = document.querySelector('div.newPair #orders-number');
 
-        sendPairSettings({
+        const requestState = sendPairSettings({
             "symbol": pairTitle.selectedOptions[0].text,
             "template": '',
             "waitSignal": waitSignal_checkBox.checked,
@@ -204,5 +312,22 @@ document.addEventListener('DOMContentLoaded', () => {
             "levelCount": ordersNumber_input.value,
             "fiboContainer": fiboContainer
         }, templates.current, 'newPair');
+
+        if (!requestState) return;
+
+        // let avalablePairs = JSON.parse(requests.get('avalablePairs'));
+        avalablePairs = responses.avalablePairsNew;
+        setAvailablePairs(availablePairsContainer, avalablePairs);
+    });
+
+
+    //--Close all orders
+    const closeAllOrders_button = document.querySelector('div.actions #close-orders-all');
+    closeAllOrders_button.addEventListener('click', () => {
+        const result = confirm('Вы уверены, что хотите закрыть все сделки?');
+
+        if (result) {
+            requests.get('closeAll');
+        }
     });
 });

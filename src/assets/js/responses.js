@@ -1,3 +1,13 @@
+/**
+ * Additional requsets:
+ * POST connectApi 
+ *      {
+            'key': value,
+            'secret': value
+        }
+    GET closeOrders?symbol=${button.name}
+ */
+
 //GET /api
 export const initialApiState = {
     'apiKey': '1123',
@@ -6,6 +16,13 @@ export const initialApiState = {
 //GET /availablePairs
 export const avalablePairs = [
     "XRPUSDTPERP",
+    "ADAUSDTPERP",
+    "DASHUSDTPERP",
+    "ATOMUSDTPERP"
+]
+
+//GET /availablePairs
+export const avalablePairsNew = [   
     "ADAUSDTPERP",
     "DASHUSDTPERP",
     "ATOMUSDTPERP"
@@ -45,11 +62,27 @@ export const activePairs = [
     }
 ]
 
-//GET symbol?=pair
+//GET /activePairs
+export const activePairsNew = [
+    {
+        "symbol": "BTCUSDT",
+        "levelCount": 1,
+        "levels": [
+            {
+                "level": "0.1",
+                "amount": "10",
+                "takeProfit": "0.2",
+                "stopLoss": "0.13"
+            }
+        ]
+    },
+]
+
+//GET settings?symbol=pair
 export const pairSettings = {
     "symbol": "ETHUSDT",
-    "template": "My", //"name" or ""
-    "waitSignal": false,
+    "template": "", //"name" or ""
+    "waitSignal": true,
     "cycleDuration": 100, //minutes
     "delay": 1, //minutes
     "price1": 61238182,

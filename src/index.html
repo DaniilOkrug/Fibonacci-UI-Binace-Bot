@@ -56,6 +56,19 @@
                     </select>
                 </div>
 
+                <div class="template mt-3">
+                    <h4>Темплейт</h4>
+                    <hr style="width: 25%;">
+                    <select id="pair-template" class="form-select">
+
+                    </select>
+                    <div class="newTemplate mt-3">
+                        <label class="form-label">Название нового темплейта</label>
+                        <input type="text" class="template-name form-control" min="0" aria-label="Fibo levels"
+                            aria-describedby="Fibo levels">
+                    </div>
+                </div>
+
                 <div class="additional-settings mt-3">
                     <h4>Настройки времени</h4>
 
@@ -146,8 +159,7 @@
                         <hr>
 
                         <div class="d-flex justify-content-between">
-                            <button type="button" class="saveTemplate btn btn-warning" data-bs-toggle="modal"
-                                data-bs-target="#saveAsTemplate">Coхранить темплейт</button>
+                            <button type="button" class="saveTemplate btn btn-warning">Coхранить темплейт</button>
                             <button id="addNewPair" type="button" class="btn btn-primary">Добавить новую пару</button>
                         </div>
                     </div>
@@ -157,7 +169,7 @@
             <hr>
 
             <div class="actions">
-                <button type="button" class="btn btn-danger">Закрыть сделки по всем парам</button>
+                <button id="close-orders-all" type="button" class="btn btn-danger">Закрыть сделки по всем парам</button>
             </div>
         </div>
 
@@ -183,47 +195,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                        <button type="button" class="btn btn-primary">Подключить</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="createTemplate" class="modal fade" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Создание темплейта</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                        <button type="button" class="btn btn-primary">Создать</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="saveAsTemplate" class="modal fade" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Сохранение темплейта</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <label for="basic-url" class="form-label">Название темплейта</label>
-                        <div class="input-group mb-3">
-                            <input type="text" class="template-name form-control" aria-label="Template Name"
-                                aria-describedby="Template Name">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                        <button type="button" class="btn btn-primary">Сохранить</button>
+                        <button id="connect" type="button" class="btn btn-primary">Подключить</button>
                     </div>
                 </div>
             </div>
@@ -245,8 +217,8 @@
                             </select>
                             <div class="newTemplate mt-3">
                                 <label class="form-label">Название нового темплейта</label>
-                                <input type="text" class="template-name form-control" min="0"
-                                    aria-label="Fibo levels" aria-describedby="Fibo levels">
+                                <input type="text" class="template-name form-control" min="0" aria-label="Fibo levels"
+                                    aria-describedby="Fibo levels">
                             </div>
                         </div>
 
@@ -347,21 +319,18 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger me-auto">Удалить пару</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                        <button type="button" class="saveTemplate btn btn-primary">Сохранить темпелейт</button>
+                        <button type="button" class="saveTemplate btn btn-warning">Сохранить темпелейт</button>
                         <button id="save" type="button" class="btn btn-primary">Сохранить</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="./main.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-        crossorigin="anonymous"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.15/lodash.min.js"></script>
 </body>
+<script src="./main.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+    crossorigin="anonymous"></script>
 
 </html>

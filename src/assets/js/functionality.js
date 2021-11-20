@@ -1,55 +1,30 @@
-import { fiboLevel, fiboEmptyLevel } from './variables';
+import { fiboLevel, fiboEmptyLevel, templateOption, avalablePair } from './variables';
 import { post } from './requests';
 
-export function sendNewTemplate(requestBody, URL) {
-        //Validate input values
-        if(!validatePairSettings({
-            "name": requestBody.name,
-            "cycleDuration": requestBody.cycleDuration,
-            "delay": requestBody.delay,
-            "price1": requestBody.price1,
-            "price2": requestBody.price2,
-            "levelCount": requestBody.levelCount,
-            "fiboContainer": requestBody.fiboContainer
-        })) return
-    
-        const levels = [];
-    
-        for (let i = 0; i < requestBody.fiboContainer.childElementCount; i++) {
-            const order = requestBody.fiboContainer.children[i];
-            const level = {
-                "level": order.querySelector('#fibo-level').value,
-                "amount": order.querySelector('#profit').value,
-                "takeProfit": order.querySelector('#takeprofit').value,
-                "stopLoss": order.querySelector('#stoploss').value  
-            }
-    
-            levels[i] = level;
-        }
-        requestBody.levels = levels;
-    
-        delete requestBody.fiboContainer;
-    
-        requestBody.template = templateName;
-    
-        console.log(requestBody);
-        requestBody = JSON.stringify(requestBody);
-    
-        console.log('Send POST request to ' + URL);
-        // post(requestBody, "application/json;charset=UTF-8");
-}
-
 /**
+ * Sends new template to the server
  * 
- * @param {Object} form object of the HTML elements
- * @param {Object} templates curretly availble pait templates
- * @param {String} URL URL of the POST request
- * @returns 
+ * @param {Object} requestBody 
+ * @param {Array} templates 
+ * @param {String} URL 
+ * @returns {Boolean} request success
  */
-export function sendPairSettings(requestBody, templates, URL) {
+export function sendNewTemplate(requestBody, templates, URL) {
     //Validate input values
-    if(!validatePairSettings({
+    const isTemplateNameExists = templates.every((template) => {
+        return template.name != requestBody.name
+    });
+
+    if (!isTemplateNameExists) {
+        alert('Такое имя темплейта уже существует')
+        return false
+    }
+
+
+    if (!validatePairSettings({
+        "name": requestBody.name,
         "cycleDuration": requestBody.cycleDuration,
+        "waitSignal": requestBody.waitSignal,
         "delay": requestBody.delay,
         "price1": requestBody.price1,
         "price2": requestBody.price2,
@@ -65,7 +40,51 @@ export function sendPairSettings(requestBody, templates, URL) {
             "level": order.querySelector('#fibo-level').value,
             "amount": order.querySelector('#profit').value,
             "takeProfit": order.querySelector('#takeprofit').value,
-            "stopLoss": order.querySelector('#stoploss').value  
+            "stopLoss": order.querySelector('#stoploss').value
+        }
+
+        levels[i] = level;
+    }
+    requestBody.levels = levels;
+
+    delete requestBody.fiboContainer;
+
+    console.log(requestBody);
+    requestBody = JSON.stringify(requestBody);
+
+    console.log('Send POST request to ' + URL);
+    // post(requestBody, "application/json;charset=UTF-8");
+    return true;
+}
+
+/**
+ * 
+ * @param {Object} form object of the HTML elements
+ * @param {Object} templates curretly availble pait templates
+ * @param {String} URL URL of the POST request
+ * @returns {Boolean} request success
+ */
+export function sendPairSettings(requestBody, templates, URL) {
+    //Validate input values
+    if (!validatePairSettings({
+        "cycleDuration": requestBody.cycleDuration,
+        "waitSignal": requestBody.waitSignal,
+        "delay": requestBody.delay,
+        "price1": requestBody.price1,
+        "price2": requestBody.price2,
+        "levelCount": requestBody.levelCount,
+        "fiboContainer": requestBody.fiboContainer
+    })) return false;
+
+    const levels = [];
+
+    for (let i = 0; i < requestBody.fiboContainer.childElementCount; i++) {
+        const order = requestBody.fiboContainer.children[i];
+        const level = {
+            "level": order.querySelector('#fibo-level').value,
+            "amount": order.querySelector('#profit').value,
+            "takeProfit": order.querySelector('#takeprofit').value,
+            "stopLoss": order.querySelector('#stoploss').value
         }
 
         levels[i] = level;
@@ -81,7 +100,49 @@ export function sendPairSettings(requestBody, templates, URL) {
     requestBody = JSON.stringify(requestBody);
 
     console.log('Send POST request to ' + URL);
-    // post(requestBody, "application/json;charset=UTF-8");
+    // const requestState = post(requestBody, "application/json;charset=UTF-8");
+    const requestState = true;
+    return requestState;
+}
+
+/**
+ * Set new pair settings
+ * 
+ * @param {Object} settings 
+ * @param {Boolean} checkTemplate Determine choosen template and select it
+ */
+ export function setNewPairSettings(settings, checkTemplate) {
+    const cycleDuration_input = document.querySelector('div.newPair #cycle-duration');
+    const waitSignal_checkBox = document.querySelector('div.newPair #waitSignal');
+    const delay_input = document.querySelector('div.newPair #cycle-delay');
+
+    const price1_input = document.querySelector('div.newPair #price1-fibo');
+    const price2_input = document.querySelector('div.newPair #price2-fibo');
+
+    const fiboContainer = document.querySelector('div.newPair div.fibo-container');
+    const ordersNumber_input = document.querySelector('div.newPair #orders-number');
+
+    if (checkTemplate) determineTemplate(settings.template);
+
+    waitSignal_checkBox.checked = settings.waitSignal;
+    cycleDuration_input.value = settings.cycleDuration;
+    delay_input.value = settings.delay;
+
+    price1_input.value = settings.price1;
+    price2_input.value = settings.price2;
+
+    ordersNumber_input.value = settings.levelCount;
+
+    if (settings.waitSignal) {
+        cycleDuration_input.disabled = true;
+    } else {
+        cycleDuration_input.disabled = false;
+    }
+
+    fiboContainer.innerHTML = '';
+    settings.levels.forEach((fibo) => {
+        fiboContainer.insertAdjacentHTML('beforeend', fiboLevel(fibo.level, fibo.amount, fibo.takeProfit, fibo.stopLoss));
+    });
 }
 
 /**
@@ -122,6 +183,35 @@ export function setPairSettings(settings, checkTemplate) {
     settings.levels.forEach((fibo) => {
         fiboContainer.insertAdjacentHTML('beforeend', fiboLevel(fibo.level, fibo.amount, fibo.takeProfit, fibo.stopLoss));
     });
+}
+
+/**
+ * Clear current settings in modal inputs
+ */
+ export function clearNewPairSettings() {
+    const cycleDuration_input = document.querySelector('div.newPair #cycle-duration');
+    const waitSignal_checkBox = document.querySelector('div.newPair #waitSignal');
+    const delay_input = document.querySelector('div.newPair #cycle-delay');
+
+    const price1_input = document.querySelector('div.newPair #price1-fibo');
+    const price2_input = document.querySelector('div.newPair #price2-fibo');
+
+    const fiboContainer = document.querySelector('div.newPair div.fibo-container');
+    const ordersNumber_input = document.querySelector('div.newPair #orders-number');
+    
+
+    waitSignal_checkBox.checked = false;
+    cycleDuration_input.value = '';
+    delay_input.value = '';
+
+    price1_input.value = '';
+    price2_input.value = '';
+
+    ordersNumber_input.value = '';
+
+    cycleDuration_input.disabled = false;
+
+    fiboContainer.innerHTML = '';
 }
 
 /**
@@ -174,10 +264,44 @@ export function generateFiboLevels(container, settings, levelsNumber) {
 }
 
 /**
+ * Set templates to the templates container
+ * 
+ * @param {Object} container HTML elemelt -> templates container
+ */
+export function setSettingsTemplatesList(container, templates) {
+    container.innerHTML = `
+        <option value="none">Пустой</option>
+        <option value="default">Настройки пары</option>
+        `;
+    for (let i = 0; i < templates.length; i++) {
+        container.insertAdjacentHTML('beforeend', templateOption(i, templates[i].name));
+    }
+}
+
+export function setTemplatesList(container, templates) {
+    container.innerHTML = `
+        <option value="none">Пустой</option>
+        `;
+    for (let i = 0; i < templates.length; i++) {
+        container.insertAdjacentHTML('beforeend', templateOption(i, templates[i].name));
+    }
+}
+
+export function setAvailablePairs(container, avalablePairs) {
+    container.innerHTML = '';
+    for (let i = 0; i < avalablePairs.length; i++) {
+        container.insertAdjacentHTML('beforeend', avalablePair(i, avalablePairs[i]));
+    }
+}
+
+/**
+ * Validate pair settings
  * 
  * @param {Oject} form Object contains HTML elements of the settings form
  * {
+ *      "name": tenplateName, -> for validating template
         "cycleDuration": value,
+        "waitSignal": value,
         "delay": value,
         "price1": value,
         "price2": value,
@@ -185,31 +309,36 @@ export function generateFiboLevels(container, settings, levelsNumber) {
         "fiboContainer": constainer {}
     }
  * 
- * @returns Boolean value of the validation
+ * @returns {Boolean} value of the validation
  */
 function validatePairSettings(form) {
     const fiboContainer = form.fiboContainer;
 
-    if (form.cycleDuration == '' || form.cycleDuration < 0) {
+    if (form?.name == '') {
+        alert('Назавние темплейта не задано!');
+        return false;
+    }
+
+    if ((form.cycleDuration == '' || form.cycleDuration < 0) && form.waitSignal == false) {
         alert('Неверное продолжительность цикла');
         return false;
     }
-        
+
     if (form.delay == '' || form.delay < 0) {
         alert('Неверное задержка');
         return false;
     }
-        
+
     if (form.price1 == '' || form.price1 < 0) {
         alert('Неверное цена 1');
         return false;
     }
-        
+
     if (form.price2 == '' || form.price2 < 0) {
         alert('Неверное цена 2');
         return false;
     }
-        
+
     if (form.levelCount == '' || form.levelCount < 1) {
         alert('Неверное количество ордеров');
         return false;
@@ -236,7 +365,7 @@ function validatePairSettings(form) {
     const takeprofitValidation = nodeListToArray(fiboContainer.querySelectorAll('#takeprofit')).every((input) => {
         return input.value != ''
     });
-    
+
     if (!takeprofitValidation) {
         alert('TakeProfit задан неврено');
         return false
@@ -245,7 +374,7 @@ function validatePairSettings(form) {
     const stoplossValidation = nodeListToArray(fiboContainer.querySelectorAll('#stoploss')).every((input) => {
         return input.value != ''
     });
-    
+
     if (!stoplossValidation) {
         alert('StopLoss задан неврено');
         return false
@@ -263,7 +392,7 @@ function determineTemplate(activeTemplate) {
     const pairTemplate = document.querySelector('#pairSettings #pair-template');
 
     if (activeTemplate == '') {
-        pairTemplate.options[0].selected = true;
+        pairTemplate.options[1].selected = true;
     } else {
         for (let i = 0; i < pairTemplate.options.length; i++) {
             if (pairTemplate.options[i].text == activeTemplate) {
