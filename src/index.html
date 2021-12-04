@@ -23,6 +23,11 @@
                             <button type="button" class="btn" data-bs-toggle="modal"
                                 data-bs-target="#connectAPI">Подключить API</button>
                         </li>
+                        <li class="nav-item">
+                            <button id="templatesList" type="button" class="btn" data-bs-toggle="modal"
+                                data-bs-target="#templates">Темплейты</button>
+                        </li>
+                    </ul>
                     </ul>
                 </div>
             </div>
@@ -37,7 +42,7 @@
             </div>
 
             <div class="activePairs py-2">
-                <h3 class="mb-4">Активные пары</h3>
+                <h3 class="mb-4">Пары с настройками</h3>
 
                 <ul class="list-group">
 
@@ -46,10 +51,67 @@
 
             <hr>
 
-            <div class="newPair py-4">
+            <div class="schedule">
+                <h3 class="mb-4">Время работы скрипта</h3>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="basic-url" class="form-label p-0">С</label>
+                        <input type="time" class="time-from form-control" min="0" aria-label="Time from"
+                            aria-describedby="Time from">
+                    </div>
+                    <div class="col">
+                        <label for="basic-url" class="form-label p-0">До</label>
+                        <input type="time" class="time-to form-control" min="0" aria-label="Time to"
+                            aria-describedby="Time to">
+                    </div>
+                </div>
+
+                <button type="button" class="sendTime btn btn-primary mt-3">Задать время</button>
+            </div>
+
+            <hr>
+
+            <div class="manualTrading">
+                <h3 class="mb-4">Ручная торговля</h3>
+
+                <label for="basic-url" class="form-label">Название пары</label>
+                <select id="active-pairs" class="form-select">
+                    <option value="1">1</option>
+                </select>
+
+                <div class="row mt-3">
+                    <div class="col">
+                        <label for="basic-url" class="form-label p-0">Максимальная цена</label>
+                        <input type="number" class="minimum-price form-control" min="0" aria-label="Minimum price"
+                            aria-describedby="Minimum price">
+                    </div>
+                    <div class="col">
+                        <label for="basic-url" class="form-label">Минимальная цена</label>
+                        <input type="number" class="maximum-price form-control" min="0" aria-label="Maximum price"
+                            aria-describedby="Maximum price">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="basic-url" class="form-label p-0">Направление импульса</label>
+                        <select id="impulseDirection" class="form-select">
+                            <option value="long">Long</option>
+                            <option value="short">Short</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="button" class="sendSignal btn btn-primary mt-3">Отправить сигнал</button>
+            </div>
+
+            <hr>
+
+            <div class="newPair">
                 <h3 class="mb-4">Добавить новую пару</h3>
 
-                <label for="basic-url" class="form-label mt-4">Название пары</label>
+                <label for="basic-url" class="form-label">Название пары</label>
                 <div class="input-group">
                     <select id="available-pairs" class="form-select">
 
@@ -92,15 +154,54 @@
                         </div>
                     </div>
 
-                    <label for="basic-url" class="form-label">Задержка(в минутах)</label>
-                    <div class="input-group mb-3">
-                        <input id="cycle-delay" type="number" class="form-control" aria-label="Fibo levels"
-                            aria-describedby="Fibo levels">
+                    <div class="row">
+                        <div class="col">
+                            <label for="basic-url" class="form-label">Задержка(в минутах)</label>
+                            <div class="input-group mb-3">
+                                <input id="cycle-delay" type="number" class="form-control" aria-label="Fibo levels"
+                                    aria-describedby="Fibo levels">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <label for="basic-url" class="form-label">Таймфрейм</label>
+                            </div>
+                            <div class="row">
+                                <select id="timeframe" class="form-select">
+                                    <option value="1m">1m</option>
+                                    <option value="3m">3m</option>
+                                    <option value="5m">5m</option>
+                                    <option value="15m">15m</option>
+                                    <option value="30m">30m</option>
+                                    <option value="1h">1h</option>
+                                    <option value="2h">2h</option>
+                                    <option value="4h">4h</option>
+                                    <option value="6h">6h</option>
+                                    <option value="8h">8h</option>
+                                    <option value="12h">12h</option>
+                                    <option value="1d">1d</option>
+                                    <option value="3d">3d</option>
+                                    <option value="1w">1w</option>
+                                    <option value="1M">1M</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="fibo">
                     <h4>Настроки ордеров</h4>
+
+                    <hr style="width: 25%;">
+
+                    <div class="row">
+                        <div class="col">
+                            <input class="form-check-input" type="checkbox" id="secondAlgorithm">
+                            <label class="form-check-label" for="secondAlgorithm">
+                                Использовать второй алгоритм
+                            </label>
+                        </div>
+                    </div>
 
                     <hr style="width: 25%;">
 
@@ -118,6 +219,15 @@
                                 <input id="price2-fibo" type="number" class="form-control"
                                     aria-label="Price 2 fibo level" aria-describedby="Price 2 fibo level">
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label for="basic-url" class="form-label">Сколько уровней пропустить при досижении цены
+                            2</label>
+                        <div class="input-group mb-3">
+                            <input id="skip-levels" type="number" class="form-control" aria-label="Skip levels"
+                                aria-describedby="Skip levels">
                         </div>
                     </div>
 
@@ -201,6 +311,27 @@
             </div>
         </div>
 
+        <div id="templates" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Темплейты</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="templates-container">
+                            <ul class="list-group">
+                                
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="pairSettings" class="modal fade" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-fullscreen modal-dialog-centered">
                 <div class="modal-content">
@@ -246,10 +377,40 @@
                                 </div>
                             </div>
 
-                            <label for="basic-url" class="form-label">Задержка(в минутах)</label>
-                            <div class="input-group mb-3">
-                                <input id="cycle-delay" type="number" class="form-control" min="0"
-                                    aria-label="Fibo levels" aria-describedby="Fibo levels">
+                            <div class="col">
+                                <div class="row">
+                                    <div class="col">
+                                        <label for="basic-url" class="form-label">Задержка(в минутах)</label>
+                                        <div class="input-group mb-3">
+                                            <input id="cycle-delay" type="number" class="form-control" min="0"
+                                                aria-label="Fibo levels" aria-describedby="Fibo levels">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row">
+                                            <label for="basic-url" class="form-label">Таймфрейм</label>
+                                        </div>
+                                        <div class="row">
+                                            <select id="timeframe" class="form-select">
+                                                <option value="1m">1m</option>
+                                                <option value="3m">3m</option>
+                                                <option value="5m">5m</option>
+                                                <option value="15m">15m</option>
+                                                <option value="30m">30m</option>
+                                                <option value="1h">1h</option>
+                                                <option value="2h">2h</option>
+                                                <option value="4h">4h</option>
+                                                <option value="6h">6h</option>
+                                                <option value="8h">8h</option>
+                                                <option value="12h">12h</option>
+                                                <option value="1d">1d</option>
+                                                <option value="3d">3d</option>
+                                                <option value="1w">1w</option>
+                                                <option value="1M">1M</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -261,6 +422,17 @@
                             <hr style="width: 25%;">
 
                             <div class="row">
+                                <div class="col">
+                                    <input class="form-check-input" type="checkbox" id="secondAlgorithm">
+                                    <label class="form-check-label" for="secondAlgorithm">
+                                        Использовать второй алгоритм
+                                    </label>
+                                </div>
+                            </div>
+
+                            <hr style="width: 25%;">
+
+                            <div class="row mt-3">
                                 <div class="col">
                                     <label for="basic-url" class="form-label">Цена 1 (Уровень Фибоначчи)</label>
                                     <div class="input-group mb-3">
@@ -274,6 +446,15 @@
                                         <input id="price2-fibo" type="number" class="form-control" min="0"
                                             aria-label="Price 2 fibo level" aria-describedby="Price 2 fibo level">
                                     </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <label for="basic-url" class="form-label">Сколько уровней пропустить при досижении цены
+                                    2</label>
+                                <div class="input-group mb-3">
+                                    <input id="skip-levels" type="number" class="form-control" aria-label="Skip levels"
+                                        aria-describedby="Skip levels">
                                 </div>
                             </div>
 
@@ -317,7 +498,6 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger me-auto">Удалить пару</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
                         <button type="button" class="saveTemplate btn btn-warning">Сохранить темпелейт</button>
                         <button id="save" type="button" class="btn btn-primary">Сохранить</button>
@@ -326,11 +506,11 @@
             </div>
         </div>
     </div>
+    <!-- <script src="main.js"></script> -->
 </body>
-<script src="./main.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
-    crossorigin="anonymous"></script>
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
+    </script>
 
 </html>

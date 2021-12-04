@@ -1,1 +1,516 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous"><title>FiboBot</title><script defer="defer" src="main.js"></script></head><body><div class="wrapper"><nav class="navbar navbar-expand-lg navbar-light bg-light"><div class="container"><div class="collapse navbar-collapse" id="navbarNav"><ul class="navbar-nav"><li class="nav-item"><button type="button" class="btn" data-bs-toggle="modal" data-bs-target="#connectAPI">Подключить API</button></li></ul></div></div></nav><div class="container"><div class="api-active mt-4"><div class="сol"><p class="mr-2">Текущий Api Key: <span id="api-key-active"></span></p></div></div><div class="activePairs py-2"><h3 class="mb-4">Активные пары</h3><ul class="list-group"></ul></div><hr><div class="newPair py-4"><h3 class="mb-4">Добавить новую пару</h3><label for="basic-url" class="form-label mt-4">Название пары</label><div class="input-group"><select id="available-pairs" class="form-select"></select></div><div class="template mt-3"><h4>Темплейт</h4><hr style="width: 25%;"><select id="pair-template" class="form-select"></select><div class="newTemplate mt-3"><label class="form-label">Название нового темплейта</label> <input class="template-name form-control" min="0" aria-label="Fibo levels" aria-describedby="Fibo levels"></div></div><div class="additional-settings mt-3"><h4>Настройки времени</h4><hr style="width: 25%;"><label for="basic-url" class="form-label">Продолжительность цикла(в минутах)</label><div class="row"><div class="col"><div class="input-group mb-3"><input id="cycle-duration" type="number" class="form-control" aria-label="Fibo levels" aria-describedby="Fibo levels"></div></div><div class="col"><input class="form-check-input" type="checkbox" value="" id="waitSignal"> <label class="form-check-label" for="waitSignal">До следующего сигнала</label></div></div><label for="basic-url" class="form-label">Задержка(в минутах)</label><div class="input-group mb-3"><input id="cycle-delay" type="number" class="form-control" aria-label="Fibo levels" aria-describedby="Fibo levels"></div></div><div class="fibo"><h4>Настроки ордеров</h4><hr style="width: 25%;"><div class="row"><div class="col"><label for="basic-url" class="form-label">Цена 1 (Уровень Фибоначчи)</label><div class="input-group mb-3"><input id="price1-fibo" type="number" class="form-control" aria-label="Price 1 fibo level" aria-describedby="Price 1 fibo level"></div></div><div class="col"><label for="basic-url" class="form-label">Цена 2 (Уровень Фибоначчи)</label><div class="input-group mb-3"><input id="price2-fibo" type="number" class="form-control" aria-label="Price 2 fibo level" aria-describedby="Price 2 fibo level"></div></div></div><label for="basic-url" class="form-label">Количество ордеров</label><div class="row"><div class="col"><div class="input-group mb-3"><input id="orders-number" type="number" class="form-control" min="0" aria-label="Orders number" aria-describedby="Orders number"></div></div><div class="col"><button type="button" class="choose-orders-number btn btn-primary me-auto">Выбрать количество ордеров</button></div></div><div class="col"><div class="row"><div class="col"><label for="basic-url" class="form-label mt-4">Объем профита</label></div><div class="col"><label for="basic-url" class="form-label mt-4">Уровень срабатывания</label></div><div class="col"><label for="basic-url" class="form-label mt-4">Уровень TP ордера</label></div><div class="col"><label for="basic-url" class="form-label mt-4">Уровень SL ордера</label></div></div><div class="fibo-container"></div><hr><div class="d-flex justify-content-between"><button type="button" class="saveTemplate btn btn-warning">Coхранить темплейт</button> <button id="addNewPair" type="button" class="btn btn-primary">Добавить новую пару</button></div></div></div></div><hr><div class="actions"><button id="close-orders-all" type="button" class="btn btn-danger">Закрыть сделки по всем парам</button></div></div><div id="connectAPI" class="modal fade" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Подключение API</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><label for="basic-url" class="form-label">API Key</label><div class="input-group mb-3"><input id="api-key" class="form-control" aria-label="API Key" aria-describedby="API Key"></div><label for="basic-url" class="form-label">API Secret Key</label><div class="input-group mb-3"><input id="secret-key" class="form-control" aria-label="API Secret Key" aria-describedby="API Secret Key"></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button> <button id="connect" type="button" class="btn btn-primary">Подключить</button></div></div></div></div><div id="pairSettings" class="modal fade" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-fullscreen modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Настройки пары <span class="pair"></span></h3><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><div class="template"><h4>Темплейт</h4><select id="pair-template" class="form-select"></select><div class="newTemplate mt-3"><label class="form-label">Название нового темплейта</label> <input class="template-name form-control" min="0" aria-label="Fibo levels" aria-describedby="Fibo levels"></div></div><hr><div class="additional-settings"><h4>Настройки времени</h4><hr style="width: 25%;"><label class="form-label">Продолжительность цикла(в минутах)</label><div class="row"><div class="col"><div class="input-group mb-3"><input id="cycle-duration" type="number" class="form-control" min="0" aria-label="Fibo levels" aria-describedby="Fibo levels"></div></div><div class="col"><input class="form-check-input" type="checkbox" value="" id="waitSignal"> <label class="form-check-label" for="waitSignal">До следующего сигнала</label></div></div><label for="basic-url" class="form-label">Задержка(в минутах)</label><div class="input-group mb-3"><input id="cycle-delay" type="number" class="form-control" min="0" aria-label="Fibo levels" aria-describedby="Fibo levels"></div></div><hr><div class="fibo"><h4>Настроки ордеров</h4><hr style="width: 25%;"><div class="row"><div class="col"><label for="basic-url" class="form-label">Цена 1 (Уровень Фибоначчи)</label><div class="input-group mb-3"><input id="price1-fibo" type="number" class="form-control" min="0" aria-label="Price 1 fibo level" aria-describedby="Price 1 fibo level"></div></div><div class="col"><label for="basic-url" class="form-label">Цена 2 (Уровень Фибоначчи)</label><div class="input-group mb-3"><input id="price2-fibo" type="number" class="form-control" min="0" aria-label="Price 2 fibo level" aria-describedby="Price 2 fibo level"></div></div></div><label for="basic-url" class="form-label">Количество ордеров</label><div class="row"><div class="col"><div class="input-group mb-3"><input id="orders-number" type="number" class="form-control" min="0" aria-label="Orders number" aria-describedby="Orders number"></div></div><div class="col"><button type="button" class="choose-orders-number btn btn-primary me-auto">Выбрать количество ордеров</button></div></div><div class="col"><div class="row"><div class="col"><label for="basic-url" class="form-label mt-4">Объем профита</label></div><div class="col"><label for="basic-url" class="form-label mt-4">Уровень срабатывания</label></div><div class="col"><label for="basic-url" class="form-label mt-4">Уровень TP ордера</label></div><div class="col"><label for="basic-url" class="form-label mt-4">Уровень SL ордера</label></div></div><div class="fibo-container"></div></div></div></div><div class="modal-footer"><button type="button" class="btn btn-danger me-auto">Удалить пару</button> <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button> <button type="button" class="saveTemplate btn btn-warning">Сохранить темпелейт</button> <button id="save" type="button" class="btn btn-primary">Сохранить</button></div></div></div></div></div></body><script src="./main.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script></html>
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <title>FiboBot</title>
+<script defer src="main.js"></script></head>
+
+<body>
+    <div class="wrapper">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <button type="button" class="btn" data-bs-toggle="modal"
+                                data-bs-target="#connectAPI">Подключить API</button>
+                        </li>
+                        <li class="nav-item">
+                            <button id="templatesList" type="button" class="btn" data-bs-toggle="modal"
+                                data-bs-target="#templates">Темплейты</button>
+                        </li>
+                    </ul>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="api-active mt-4">
+                <div class="сol">
+                    <p class="mr-2">Текущий Api Key: <span id="api-key-active"></span></p>
+                </div>
+
+            </div>
+
+            <div class="activePairs py-2">
+                <h3 class="mb-4">Пары с настройками</h3>
+
+                <ul class="list-group">
+
+                </ul>
+            </div>
+
+            <hr>
+
+            <div class="schedule">
+                <h3 class="mb-4">Время работы скрипта</h3>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="basic-url" class="form-label p-0">С</label>
+                        <input type="time" class="time-from form-control" min="0" aria-label="Time from"
+                            aria-describedby="Time from">
+                    </div>
+                    <div class="col">
+                        <label for="basic-url" class="form-label p-0">До</label>
+                        <input type="time" class="time-to form-control" min="0" aria-label="Time to"
+                            aria-describedby="Time to">
+                    </div>
+                </div>
+
+                <button type="button" class="sendTime btn btn-primary mt-3">Задать время</button>
+            </div>
+
+            <hr>
+
+            <div class="manualTrading">
+                <h3 class="mb-4">Ручная торговля</h3>
+
+                <label for="basic-url" class="form-label">Название пары</label>
+                <select id="active-pairs" class="form-select">
+                    <option value="1">1</option>
+                </select>
+
+                <div class="row mt-3">
+                    <div class="col">
+                        <label for="basic-url" class="form-label p-0">Максимальная цена</label>
+                        <input type="number" class="minimum-price form-control" min="0" aria-label="Minimum price"
+                            aria-describedby="Minimum price">
+                    </div>
+                    <div class="col">
+                        <label for="basic-url" class="form-label">Минимальная цена</label>
+                        <input type="number" class="maximum-price form-control" min="0" aria-label="Maximum price"
+                            aria-describedby="Maximum price">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label for="basic-url" class="form-label p-0">Направление импульса</label>
+                        <select id="impulseDirection" class="form-select">
+                            <option value="long">Long</option>
+                            <option value="short">Short</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="button" class="sendSignal btn btn-primary mt-3">Отправить сигнал</button>
+            </div>
+
+            <hr>
+
+            <div class="newPair">
+                <h3 class="mb-4">Добавить новую пару</h3>
+
+                <label for="basic-url" class="form-label">Название пары</label>
+                <div class="input-group">
+                    <select id="available-pairs" class="form-select">
+
+                    </select>
+                </div>
+
+                <div class="template mt-3">
+                    <h4>Темплейт</h4>
+                    <hr style="width: 25%;">
+                    <select id="pair-template" class="form-select">
+
+                    </select>
+                    <div class="newTemplate mt-3">
+                        <label class="form-label">Название нового темплейта</label>
+                        <input type="text" class="template-name form-control" min="0" aria-label="Fibo levels"
+                            aria-describedby="Fibo levels">
+                    </div>
+                </div>
+
+                <div class="additional-settings mt-3">
+                    <h4>Настройки времени</h4>
+
+                    <hr style="width: 25%;">
+
+                    <label for="basic-url" class="form-label">Продолжительность цикла(в минутах)</label>
+                    <div class="row">
+                        <div class="col">
+
+                            <div class="input-group mb-3">
+                                <input id="cycle-duration" type="number" class="form-control" aria-label="Fibo levels"
+                                    aria-describedby="Fibo levels">
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <input class="form-check-input" type="checkbox" value="" id="waitSignal">
+                            <label class="form-check-label" for="waitSignal">
+                                До следующего сигнала
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col">
+                            <label for="basic-url" class="form-label">Задержка(в минутах)</label>
+                            <div class="input-group mb-3">
+                                <input id="cycle-delay" type="number" class="form-control" aria-label="Fibo levels"
+                                    aria-describedby="Fibo levels">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row">
+                                <label for="basic-url" class="form-label">Таймфрейм</label>
+                            </div>
+                            <div class="row">
+                                <select id="timeframe" class="form-select">
+                                    <option value="1m">1m</option>
+                                    <option value="3m">3m</option>
+                                    <option value="5m">5m</option>
+                                    <option value="15m">15m</option>
+                                    <option value="30m">30m</option>
+                                    <option value="1h">1h</option>
+                                    <option value="2h">2h</option>
+                                    <option value="4h">4h</option>
+                                    <option value="6h">6h</option>
+                                    <option value="8h">8h</option>
+                                    <option value="12h">12h</option>
+                                    <option value="1d">1d</option>
+                                    <option value="3d">3d</option>
+                                    <option value="1w">1w</option>
+                                    <option value="1M">1M</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fibo">
+                    <h4>Настроки ордеров</h4>
+
+                    <hr style="width: 25%;">
+
+                    <div class="row">
+                        <div class="col">
+                            <input class="form-check-input" type="checkbox" id="secondAlgorithm">
+                            <label class="form-check-label" for="secondAlgorithm">
+                                Использовать второй алгоритм
+                            </label>
+                        </div>
+                    </div>
+
+                    <hr style="width: 25%;">
+
+                    <div class="row">
+                        <div class="col">
+                            <label for="basic-url" class="form-label">Цена 1 (Уровень Фибоначчи)</label>
+                            <div class="input-group mb-3">
+                                <input id="price1-fibo" type="number" class="form-control"
+                                    aria-label="Price 1 fibo level" aria-describedby="Price 1 fibo level">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <label for="basic-url" class="form-label">Цена 2 (Уровень Фибоначчи)</label>
+                            <div class="input-group mb-3">
+                                <input id="price2-fibo" type="number" class="form-control"
+                                    aria-label="Price 2 fibo level" aria-describedby="Price 2 fibo level">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label for="basic-url" class="form-label">Сколько уровней пропустить при досижении цены
+                            2</label>
+                        <div class="input-group mb-3">
+                            <input id="skip-levels" type="number" class="form-control" aria-label="Skip levels"
+                                aria-describedby="Skip levels">
+                        </div>
+                    </div>
+
+                    <label for="basic-url" class="form-label">Количество ордеров</label>
+                    <div class="row">
+                        <div class="col">
+                            <div class="input-group mb-3">
+                                <input id="orders-number" type="number" class="form-control" min="0"
+                                    aria-label="Orders number" aria-describedby="Orders number">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <button type="button" class="choose-orders-number btn btn-primary me-auto">Выбрать
+                                количество ордеров</button>
+                        </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="row">
+                            <div class="col">
+                                <label for="basic-url" class="form-label mt-4">Объем профита</label>
+                            </div>
+                            <div class="col">
+                                <label for="basic-url" class="form-label mt-4">Уровень срабатывания</label>
+                            </div>
+                            <div class="col">
+                                <label for="basic-url" class="form-label mt-4">Уровень TP ордера </label>
+                            </div>
+                            <div class="col">
+                                <label for="basic-url" class="form-label mt-4">Уровень SL ордера </label>
+                            </div>
+                        </div>
+
+                        <!--Fibo levels-->
+                        <div class="fibo-container">
+
+                        </div>
+
+                        <hr>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="saveTemplate btn btn-warning">Coхранить темплейт</button>
+                            <button id="addNewPair" type="button" class="btn btn-primary">Добавить новую пару</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="actions">
+                <button id="close-orders-all" type="button" class="btn btn-danger">Закрыть сделки по всем парам</button>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <div id="connectAPI" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Подключение API</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="basic-url" class="form-label">API Key</label>
+                        <div class="input-group mb-3">
+                            <input id="api-key" type="text" class="form-control" aria-label="API Key"
+                                aria-describedby="API Key">
+                        </div>
+                        <label for="basic-url" class="form-label">API Secret Key</label>
+                        <div class="input-group mb-3">
+                            <input id="secret-key" type="text" class="form-control" aria-label="API Secret Key"
+                                aria-describedby="API Secret Key">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button id="connect" type="button" class="btn btn-primary">Подключить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="templates" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Темплейты</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="templates-container">
+                            <ul class="list-group">
+                                
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pairSettings" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-fullscreen modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">Настройки пары <span class="pair"></span></h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="template">
+                            <h4>Темплейт</h4>
+                            <select id="pair-template" class="form-select">
+
+                            </select>
+                            <div class="newTemplate mt-3">
+                                <label class="form-label">Название нового темплейта</label>
+                                <input type="text" class="template-name form-control" min="0" aria-label="Fibo levels"
+                                    aria-describedby="Fibo levels">
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="additional-settings">
+                            <h4>Настройки времени</h4>
+
+                            <hr style="width: 25%;">
+
+                            <label class="form-label">Продолжительность цикла(в минутах)</label>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="input-group mb-3">
+                                        <input id="cycle-duration" type="number" class="form-control" min="0"
+                                            aria-label="Fibo levels" aria-describedby="Fibo levels">
+                                    </div>
+                                </div>
+
+                                <div class="col">
+                                    <input class="form-check-input" type="checkbox" value="" id="waitSignal">
+                                    <label class="form-check-label" for="waitSignal">
+                                        До следующего сигнала
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="row">
+                                    <div class="col">
+                                        <label for="basic-url" class="form-label">Задержка(в минутах)</label>
+                                        <div class="input-group mb-3">
+                                            <input id="cycle-delay" type="number" class="form-control" min="0"
+                                                aria-label="Fibo levels" aria-describedby="Fibo levels">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="row">
+                                            <label for="basic-url" class="form-label">Таймфрейм</label>
+                                        </div>
+                                        <div class="row">
+                                            <select id="timeframe" class="form-select">
+                                                <option value="1m">1m</option>
+                                                <option value="3m">3m</option>
+                                                <option value="5m">5m</option>
+                                                <option value="15m">15m</option>
+                                                <option value="30m">30m</option>
+                                                <option value="1h">1h</option>
+                                                <option value="2h">2h</option>
+                                                <option value="4h">4h</option>
+                                                <option value="6h">6h</option>
+                                                <option value="8h">8h</option>
+                                                <option value="12h">12h</option>
+                                                <option value="1d">1d</option>
+                                                <option value="3d">3d</option>
+                                                <option value="1w">1w</option>
+                                                <option value="1M">1M</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="fibo">
+                            <h4>Настроки ордеров</h4>
+
+                            <hr style="width: 25%;">
+
+                            <div class="row">
+                                <div class="col">
+                                    <input class="form-check-input" type="checkbox" id="secondAlgorithm">
+                                    <label class="form-check-label" for="secondAlgorithm">
+                                        Использовать второй алгоритм
+                                    </label>
+                                </div>
+                            </div>
+
+                            <hr style="width: 25%;">
+
+                            <div class="row mt-3">
+                                <div class="col">
+                                    <label for="basic-url" class="form-label">Цена 1 (Уровень Фибоначчи)</label>
+                                    <div class="input-group mb-3">
+                                        <input id="price1-fibo" type="number" class="form-control" min="0"
+                                            aria-label="Price 1 fibo level" aria-describedby="Price 1 fibo level">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <label for="basic-url" class="form-label">Цена 2 (Уровень Фибоначчи)</label>
+                                    <div class="input-group mb-3">
+                                        <input id="price2-fibo" type="number" class="form-control" min="0"
+                                            aria-label="Price 2 fibo level" aria-describedby="Price 2 fibo level">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <label for="basic-url" class="form-label">Сколько уровней пропустить при досижении цены
+                                    2</label>
+                                <div class="input-group mb-3">
+                                    <input id="skip-levels" type="number" class="form-control" aria-label="Skip levels"
+                                        aria-describedby="Skip levels">
+                                </div>
+                            </div>
+
+                            <label for="basic-url" class="form-label">Количество ордеров</label>
+                            <div class="row">
+                                <div class="col">
+                                    <div class="input-group mb-3">
+                                        <input id="orders-number" type="number" class="form-control" min="0"
+                                            aria-label="Orders number" aria-describedby="Orders number">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <button type="button" class="choose-orders-number btn btn-primary me-auto">Выбрать
+                                        количество ордеров</button>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="row">
+                                    <div class="col">
+                                        <label for="basic-url" class="form-label mt-4">Объем профита</label>
+                                    </div>
+                                    <div class="col">
+                                        <label for="basic-url" class="form-label mt-4">Уровень срабатывания</label>
+                                    </div>
+                                    <div class="col">
+                                        <label for="basic-url" class="form-label mt-4">Уровень TP ордера </label>
+                                    </div>
+                                    <div class="col">
+                                        <label for="basic-url" class="form-label mt-4">Уровень SL ордера </label>
+                                    </div>
+                                </div>
+
+                                <!--Fibo levels-->
+                                <div class="fibo-container">
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        <button type="button" class="saveTemplate btn btn-warning">Сохранить темпелейт</button>
+                        <button id="save" type="button" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <script src="main.js"></script> -->
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
+    </script>
+
+</html>

@@ -10,6 +10,7 @@ export class Templates {
     }
 
     set update(templates) {
+        this.#templates = [];
         this.#templates = templates;
     }
 }

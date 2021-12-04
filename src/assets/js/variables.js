@@ -1,14 +1,30 @@
 export const URL = '123/';
 
+export function templateListItem(name) {
+    return `
+        <li class="list-group-item">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="align-middle">${name}</span>
+                <div class="btn-group">
+                    <button name="${name}" type="button"
+                        class="delete-template btn btn-sm btn-warning">Удалить</button>
+                </div>
+            </div>
+        </li>
+    `
+}
+
 export function activePair(symbol) { 
     return `
     <li class="list-group-item">
         <div class="d-flex justify-content-between align-items-center">
             <span class="align-middle">${symbol}</span>
             <div class="btn-group">
-                <button name="${symbol}" type="button" class="settings-orders btn btn-sm btn-primary mx-4" data-bs-toggle="modal"
+                <button name="${symbol}" type="button" class="active cycle-state btn btn-sm btn-success me-4">Работает</button>
+                <button name="${symbol}" type="button" class="settings-orders btn btn-sm btn-primary me-4" data-bs-toggle="modal"
                     data-bs-target="#pairSettings">Настройка</button>
-                <button name="${symbol}" type="button" class="close-orders btn btn-sm btn-warning">Закрыть сделки</button>
+                <button name="${symbol}" type="button" class="close-orders btn btn-sm btn-warning me-4">Закрыть сделки</button>
+                <button name="${symbol}" type="button" class="delete-pair btn btn-sm btn-danger">Удалить</button>
             </div>
         </div>
     </li>`;

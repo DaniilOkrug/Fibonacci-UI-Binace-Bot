@@ -1,5 +1,16 @@
-import { fiboLevel, fiboEmptyLevel, templateOption, avalablePair } from './variables';
-import { post } from './requests';
+import {
+    fiboLevel,
+    fiboEmptyLevel,
+    templateOption,
+    avalablePair
+} from './variables';
+import {
+    get,
+    postAuthed
+} from './requests';
+import * as variables from './variables';
+
+import * as responses from './responses'; //Only for tests
 
 /**
  * Sends new template to the server
@@ -9,7 +20,7 @@ import { post } from './requests';
  * @param {String} URL 
  * @returns {Boolean} request success
  */
-export function sendNewTemplate(requestBody, templates, URL) {
+export function sendNewTemplate(requestBody, templates, URL, token) {
     //Validate input values
     const isTemplateNameExists = templates.every((template) => {
         return template.name != requestBody.name
@@ -20,7 +31,6 @@ export function sendNewTemplate(requestBody, templates, URL) {
         return false
     }
 
-
     if (!validatePairSettings({
         "name": requestBody.name,
         "cycleDuration": requestBody.cycleDuration,
@@ -28,6 +38,7 @@ export function sendNewTemplate(requestBody, templates, URL) {
         "delay": requestBody.delay,
         "price1": requestBody.price1,
         "price2": requestBody.price2,
+        "skipLevels": requestBody.skipLevels,
         "levelCount": requestBody.levelCount,
         "fiboContainer": requestBody.fiboContainer
     })) return
@@ -45,15 +56,19 @@ export function sendNewTemplate(requestBody, templates, URL) {
 
         levels[i] = level;
     }
-    requestBody.levels = levels;
 
     delete requestBody.fiboContainer;
 
-    console.log(requestBody);
-    requestBody = JSON.stringify(requestBody);
+    requestBody.levels = levels;
+    requestBody.cycleDuration = requestBody.cycleDuration == '' ? '0m' : requestBody.cycleDuration + 'm';
+    requestBody.delay += 'm';
 
-    console.log('Send POST request to ' + URL);
-    // post(requestBody, "application/json;charset=UTF-8");
+    requestBody.skipLevels = Number(requestBody.skipLevels);
+    requestBody.levelCount = Number(requestBody.levelCount);
+
+    console.log(requestBody);
+
+    postAuthed(requestBody, 'newTemplate', token);
     return true;
 }
 
@@ -64,7 +79,7 @@ export function sendNewTemplate(requestBody, templates, URL) {
  * @param {String} URL URL of the POST request
  * @returns {Boolean} request success
  */
-export function sendPairSettings(requestBody, templates, URL) {
+export function sendPairSettings(requestBody, templates, URL, token) {
     //Validate input values
     if (!validatePairSettings({
         "cycleDuration": requestBody.cycleDuration,
@@ -72,6 +87,7 @@ export function sendPairSettings(requestBody, templates, URL) {
         "delay": requestBody.delay,
         "price1": requestBody.price1,
         "price2": requestBody.price2,
+        "skipLevels": requestBody.skipLevels,
         "levelCount": requestBody.levelCount,
         "fiboContainer": requestBody.fiboContainer
     })) return false;
@@ -89,20 +105,25 @@ export function sendPairSettings(requestBody, templates, URL) {
 
         levels[i] = level;
     }
-    requestBody.levels = levels;
 
     delete requestBody.fiboContainer;
 
-    const templateName = checkForTemplate(requestBody, templates);
-    requestBody.template = templateName;
+    requestBody.levels = levels;
+    const promise = new Promise((resolve, reject) => {
+        const templateName = checkForTemplate(requestBody, templates);
+        requestBody.template = templateName;
+        resolve();
+    });
 
-    console.log(requestBody);
-    requestBody = JSON.stringify(requestBody);
+    promise.then(() => {
+        requestBody.skipLevels = Number(requestBody.skipLevels);
+        requestBody.levelCount = Number(requestBody.levelCount);
 
-    console.log('Send POST request to ' + URL);
-    // const requestState = post(requestBody, "application/json;charset=UTF-8");
-    const requestState = true;
-    return requestState;
+        requestBody.cycleDuration += 'm';
+        requestBody.delay += 'm';
+
+        postAuthed(requestBody, URL, token);
+    });
 }
 
 /**
@@ -111,25 +132,40 @@ export function sendPairSettings(requestBody, templates, URL) {
  * @param {Object} settings 
  * @param {Boolean} checkTemplate Determine choosen template and select it
  */
- export function setNewPairSettings(settings, checkTemplate) {
+export function setNewPairSettings(settings, checkTemplate) {
+    console.log(settings);
     const cycleDuration_input = document.querySelector('div.newPair #cycle-duration');
     const waitSignal_checkBox = document.querySelector('div.newPair #waitSignal');
     const delay_input = document.querySelector('div.newPair #cycle-delay');
+    const timeframe_select = document.querySelector('div.newPair #timeframe');
+
+    const secondAlgorithm_checkBox = document.querySelector('div.newPair #secondAlgorithm');
 
     const price1_input = document.querySelector('div.newPair #price1-fibo');
     const price2_input = document.querySelector('div.newPair #price2-fibo');
+    const price2SkipLevels_input = document.querySelector('div.newPair #skip-levels');
 
     const fiboContainer = document.querySelector('div.newPair div.fibo-container');
     const ordersNumber_input = document.querySelector('div.newPair #orders-number');
 
     if (checkTemplate) determineTemplate(settings.template);
 
+    for (let i = 0; i < timeframe_select.options.length; i++) {
+        if (timeframe_select.options[i].text == settings.timeframe) {
+            timeframe_select.options[i].selected = true;
+            break;
+        }
+    }
+
     waitSignal_checkBox.checked = settings.waitSignal;
     cycleDuration_input.value = settings.cycleDuration;
     delay_input.value = settings.delay;
 
-    price1_input.value = settings.price1;
-    price2_input.value = settings.price2;
+    secondAlgorithm_checkBox.checked = settings.cycleType == "Alternative" ? true : false
+
+    price1_input.value = settings.stopPrice;
+    price2_input.value = settings.skipPrice;
+    price2SkipLevels_input.value = settings.skipLevels;
 
     ordersNumber_input.value = settings.levelCount;
 
@@ -155,21 +191,35 @@ export function setPairSettings(settings, checkTemplate) {
     const cycleDuration_input = document.querySelector('#pairSettings #cycle-duration');
     const waitSignal_checkBox = document.querySelector('#pairSettings #waitSignal');
     const delay_input = document.querySelector('#pairSettings #cycle-delay');
+    const timeframe_select = document.querySelector('#pairSettings #timeframe');
+
+    const secondAlgorithm_checkBox = document.querySelector('#pairSettings #secondAlgorithm');
 
     const price1_input = document.querySelector('#pairSettings #price1-fibo');
     const price2_input = document.querySelector('#pairSettings #price2-fibo');
+    const price2SkipLevels_input = document.querySelector('#pairSettings #skip-levels');
 
     const fiboContainer = document.querySelector('#pairSettings div.fibo-container');
     const ordersNumber_input = document.querySelector('#pairSettings #orders-number');
 
     if (checkTemplate) determineTemplate(settings.template);
 
+    for (let i = 0; i < timeframe_select.options.length; i++) {
+        if (timeframe_select.options[i].text == settings.timeframe) {
+            timeframe_select.options[i].selected = true;
+            break;
+        }
+    }
+
     waitSignal_checkBox.checked = settings.waitSignal;
     cycleDuration_input.value = settings.cycleDuration;
     delay_input.value = settings.delay;
 
-    price1_input.value = settings.price1;
-    price2_input.value = settings.price2;
+    secondAlgorithm_checkBox.checked = settings.cycleType == "Alternative" ? true : false
+
+    price1_input.value = settings.stopPrice;
+    price2_input.value = settings.skipPrice;
+    price2SkipLevels_input.value = settings.skipLevels;
 
     ordersNumber_input.value = settings.levelCount;
 
@@ -188,17 +238,18 @@ export function setPairSettings(settings, checkTemplate) {
 /**
  * Clear current settings in modal inputs
  */
- export function clearNewPairSettings() {
+export function clearNewPairSettings() {
     const cycleDuration_input = document.querySelector('div.newPair #cycle-duration');
     const waitSignal_checkBox = document.querySelector('div.newPair #waitSignal');
     const delay_input = document.querySelector('div.newPair #cycle-delay');
 
     const price1_input = document.querySelector('div.newPair #price1-fibo');
     const price2_input = document.querySelector('div.newPair #price2-fibo');
+    const price2SkipLevels_input = document.querySelector('div.newPair #skip-levels');
 
     const fiboContainer = document.querySelector('div.newPair div.fibo-container');
     const ordersNumber_input = document.querySelector('div.newPair #orders-number');
-    
+
 
     waitSignal_checkBox.checked = false;
     cycleDuration_input.value = '';
@@ -206,6 +257,7 @@ export function setPairSettings(settings, checkTemplate) {
 
     price1_input.value = '';
     price2_input.value = '';
+    price2SkipLevels_input.value = '';
 
     ordersNumber_input.value = '';
 
@@ -225,6 +277,8 @@ export function clearSettings() {
     const price1_input = document.querySelector('#pairSettings #price1-fibo');
     const price2_input = document.querySelector('#pairSettings #price2-fibo');
 
+    const skipLevels_input = document.querySelector('#pairSettings #skip-levels');
+
     const fiboContainer = document.querySelector('#pairSettings div.fibo-container');
     const ordersNumber_input = document.querySelector('#pairSettings #orders-number');
 
@@ -234,6 +288,8 @@ export function clearSettings() {
 
     price1_input.value = '';
     price2_input.value = '';
+
+    skipLevels_input.value = '';
 
     ordersNumber_input.value = '';
 
@@ -262,6 +318,16 @@ export function generateFiboLevels(container, settings, levelsNumber) {
         }
     }
 }
+export function settingsButtonsActions(settingsButtons, authToken) {
+    settingsButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            settings.update = settingsFormatter(JSON.parse(requests.get(`symbols?symbol=${button.name}`, authToken)));
+            const pairTitle = document.querySelector('#pairSettings span.pair');
+            pairTitle.innerHTML = settings.current.symbol;
+            setPairSettings(settings.current, true);
+        });
+    });
+}
 
 /**
  * Set templates to the templates container
@@ -278,6 +344,12 @@ export function setSettingsTemplatesList(container, templates) {
     }
 }
 
+/**
+ * Set templates list to select element
+ * 
+ * @param {Object} container HTML element
+ * @param {Array} templates array of templates
+ */
 export function setTemplatesList(container, templates) {
     container.innerHTML = `
         <option value="none">Пустой</option>
@@ -287,10 +359,67 @@ export function setTemplatesList(container, templates) {
     }
 }
 
+export function setListOfTemplates(container, templates) {
+    container.innerHTML = '';
+    if (templates.length > 0) {
+        templates.forEach(template => {
+            console.log(template.name);
+            container.insertAdjacentHTML('beforeend', variables.templateListItem(template.name));
+        });
+    }
+}
+
 export function setAvailablePairs(container, avalablePairs) {
     container.innerHTML = '';
     for (let i = 0; i < avalablePairs.length; i++) {
         container.insertAdjacentHTML('beforeend', avalablePair(i, avalablePairs[i]));
+    }
+}
+
+/**
+ * Fromate settings after request
+ * 
+ * @param {Object} settings JSON settings of template or pair
+ * @returns formatting settings
+ */
+export function settingsFormatter(settings) {
+    console.log('{Formatter}');
+    if (Object.prototype.toString.call(settings) === '[object Array]') {
+        settings.forEach((setting) => {
+            if (setting.delay.includes('m') || setting.delay.includes('s')) {
+                setting.delay = setting.delay.slice(0, -1);
+            }
+            if (setting.cycleDuration.includes('m') || setting.cycleDuration.includes('s')) {
+                setting.cycleDuration = setting.cycleDuration.slice(0, -1);
+            }
+        });
+    } else {
+        if (settings.delay.includes('m') || settings.delay.includes('s')) {
+            settings.delay = settings.delay.slice(0, -1);
+        }
+        if (settings.cycleDuration.includes('m') || settings.cycleDuration.includes('s')) {
+            settings.cycleDuration = settings.cycleDuration.slice(0, -1);
+        }
+    }
+
+    console.log(settings);
+    return settings;
+}
+
+/**
+ * Recreate HTML elements for deleteng eventListeners
+ * 
+ * @param {Object} el HTML element
+ * @param {Boolean} withChildren TRUE if element include children elements
+ */
+export function recreateNode(el, withChildren) {
+    if (withChildren) {
+        el.parentNode.replaceChild(el.cloneNode(true), el);
+    }
+    else {
+        var newEl = el.cloneNode(false);
+        while (el.hasChildNodes()) newEl.appendChild(el.firstChild);
+        el.parentNode.replaceChild(newEl, el);
     }
 }
 
@@ -336,6 +465,11 @@ function validatePairSettings(form) {
 
     if (form.price2 == '' || form.price2 < 0) {
         alert('Неверное цена 2');
+        return false;
+    }
+
+    if (form.skipLevels == '' || form.skipLevels < 0) {
+        alert('Неверное количество пропускаемых уровней при достижении цены 2');
         return false;
     }
 
@@ -414,24 +548,27 @@ function checkForTemplate(settingsJSON, templates) {
 
     let name = '';
     templates.forEach((template) => {
-        if (template.waitSignal == settings.waitSignal)
-            if (template.cycleDuration == settings.cycleDuration)
-                if (template.delay == settings.delay)
-                    if (template.price1 == settings.price1)
-                        if (template.price2 == settings.price2)
-                            if (template.levelCount == settings.levelCount) {
-                                for (let i = 0; i < template.levels.length; i++) {
-                                    const templateLevel = template.levels[i];
-                                    const settingsLevel = settings.levels[i];
+        if (template.cycleType == settings.cycleType)
+            if (template.timeframe == settings.timeframe)
+                if (template.waitSignal == settings.waitSignal)
+                    if (template.cycleDuration == settings.cycleDuration)
+                        if (template.delay == settings.delay)
+                            if (template.skipPrice == settings.skipPrice)
+                                if (template.skipLevels == settings.skipLevels)
+                                    if (template.stopPrice == settings.stopPrice)
+                                        if (template.levelCount == settings.levelCount) {
+                                            for (let i = 0; i < template.levels.length; i++) {
+                                                const templateLevel = template.levels[i];
+                                                const settingsLevel = settings.levels[i];
 
-                                    if (templateLevel.level == settingsLevel.level)
-                                        if (templateLevel.amount == settingsLevel.amount)
-                                            if (templateLevel.takeProfit == settingsLevel.takeProfit)
-                                                if (templateLevel.stopLoss == settingsLevel.stopLoss) {
-                                                    name = template.name;
-                                                }
-                                }
-                            }
+                                                if (templateLevel.level == settingsLevel.level)
+                                                    if (templateLevel.amount == settingsLevel.amount)
+                                                        if (templateLevel.takeProfit == settingsLevel.takeProfit)
+                                                            if (templateLevel.stopLoss == settingsLevel.stopLoss) {
+                                                                name = template.name;
+                                                            }
+                                            }
+                                        }
     });
 
     return name;
