@@ -25,6 +25,7 @@ import * as requests from './requests';
 
 document.addEventListener('DOMContentLoaded', () => {
     let authToken = JSON.parse(requests.post({ "password": "123" }, 'login')).token;
+    console.log('authToken:' + authToken);
 
     const settings = new Setting();
     const templates = new Templates(settingsFormatter(JSON.parse(requests.get('templates', authToken))));
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'clientSecret': apiSecretKeyInput.value
         };
 
-        requests.postAuthed(requestBody, 'connectApi', true, authToken);
+        requests.postAuthed(requestBody, 'connectApi', authToken);
 
         const apiKey = JSON.parse(requests.get('api', authToken)).clientId;
         inputApiKey.innerHTML = apiKey;
