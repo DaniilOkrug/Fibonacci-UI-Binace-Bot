@@ -409,14 +409,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const fiboContainer = document.querySelector('div.newPair div.fibo-container');
         const ordersNumber_input = document.querySelector('div.newPair #orders-number');
 
-        sendPairSettings({
+        const requestSuccess = sendPairSettings({
             "symbol": pairTitle.selectedOptions[0].text,
             "template": '',
             "cycleType": secondAlgorithm_checkBox.checked ? 'Alternative' : 'Normal',
             "timeframe": timeframe_select.selectedOptions[0].text,
             "waitSignal": waitSignal_checkBox.checked,
-            "cycleDuration": cycleDuration_input.value, //minutes
-            "delay": delay_input.value, //minutes
+            "cycleDuration": cycleDuration_input.value == '' ? 0 : cycleDuration_input.value, //minutes
+            "delay": delay_input.value == '' ? 0 : delay_input.value, //minutes
             "stopPrice": price1_input.value,
             "skipPrice": price2_input.value,
             "skipLevels": price2SkipLevels_input.value,
@@ -424,34 +424,35 @@ document.addEventListener('DOMContentLoaded', () => {
             "fiboContainer": fiboContainer
         }, templates.current, 'newSymbol', authToken);
 
-        //Generate new list of active pairs
-        const activePairs = JSON.parse(requests.get('activeSymbols', authToken));
-        console.log(activePairs);
+        requestSuccess.then(() => {
+            //Generate new list of active pairs
+            const activePairs = JSON.parse(requests.get('activeSymbols', authToken));
+            console.log(activePairs);
 
-        activePairsContainer.innerHTML = '';
-        if (activePairs.length > 0) {
-            activePairs.forEach(pair => {
-                activePairsContainer.insertAdjacentHTML('beforeend', variables.activePair(pair));
-            });
-        }
+            activePairsContainer.innerHTML = '';
+            if (activePairs.length > 0) {
+                activePairs.forEach(pair => {
+                    activePairsContainer.insertAdjacentHTML('beforeend', variables.activePair(pair));
+                });
+            }
 
-        setActionsToPairsWithSettings();
+            setActionsToPairsWithSettings();
 
-        const newCloseOrder_buttons = activePairsContainer.querySelectorAll('button.delete-pair');
-        deleteActivePairActions(activePairsContainer, newCloseOrder_buttons, authToken);
+            const newCloseOrder_buttons = activePairsContainer.querySelectorAll('button.delete-pair');
+            deleteActivePairActions(activePairsContainer, newCloseOrder_buttons, authToken);
 
 
-        activePairs_select.innerHTML = '';
-        activePairs.forEach((pair) => {
-            activePairs_select.insertAdjacentHTML('beforeend', `
+            activePairs_select.innerHTML = '';
+            activePairs.forEach((pair) => {
+                activePairs_select.insertAdjacentHTML('beforeend', `
                     <option value="${pair}">${pair}</option>
                 `);
+            })
+
+            //Generate new list of available pairs for new pair adding
+            let avalablePairs = JSON.parse(requests.get('availableSymbols', authToken));
+            setAvailablePairs(availablePairsContainer, avalablePairs);
         })
-
-        //Generate new list of available pairs for new pair adding
-        let avalablePairs = JSON.parse(requests.get('availableSymbols', authToken));
-        setAvailablePairs(availablePairsContainer, avalablePairs);
-
     });
 
 

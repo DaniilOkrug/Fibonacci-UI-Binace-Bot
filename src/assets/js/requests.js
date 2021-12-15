@@ -43,26 +43,27 @@ export function post(body, additionalURL) {
 }
 
 export function postAuthed(body, additionalURL, jwtoken) {
-    var xhr = new XMLHttpRequest();
+    return new Promise((resolve, reject) => {
+        var xhr = new XMLHttpRequest();
 
-    body = JSON.stringify(body);
-    console.log('RequestBody: ' + body);
+        body = JSON.stringify(body);
+        console.log('RequestBody: ' + body);
 
-    xhr.open('POST', url + additionalURL, false);
-    console.log(jwtoken);
+        xhr.open('POST', url + additionalURL, false);
 
-    xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
-    xhr.setRequestHeader('Authorization', 'Bearer ' + jwtoken);
-    xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+        xhr.setRequestHeader('Authorization', 'Bearer ' + jwtoken);
+        xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
 
-    xhr.send(body);
+        xhr.send(body);
 
-    if (xhr.status >= 200 && xhr.status < 300) {
-        return xhr.response;
-    } else {
-        return {
-            status: xhr.status,
-            statusText: xhr.statusText
+        if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(xhr.response);
+        } else {
+            reject({
+                status: xhr.status,
+                statusText: xhr.statusText
+            });
         }
-    }
+    });
 }

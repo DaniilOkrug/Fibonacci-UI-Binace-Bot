@@ -80,49 +80,49 @@ export function sendNewTemplate(requestBody, templates, URL, token) {
  * @returns {Boolean} request success
  */
 export function sendPairSettings(requestBody, templates, URL, token) {
-    //Validate input values
-    if (!validatePairSettings({
-        "cycleDuration": requestBody.cycleDuration,
-        "waitSignal": requestBody.waitSignal,
-        "delay": requestBody.delay,
-        "price1": requestBody.price1,
-        "price2": requestBody.price2,
-        "skipLevels": requestBody.skipLevels,
-        "levelCount": requestBody.levelCount,
-        "fiboContainer": requestBody.fiboContainer
-    })) return false;
+    return new Promise((resolve, reject) => {
+        //Validate input values
+        if (!validatePairSettings({
+            "cycleDuration": requestBody.cycleDuration,
+            "waitSignal": requestBody.waitSignal,
+            "delay": requestBody.delay,
+            "price1": requestBody.price1,
+            "price2": requestBody.price2,
+            "skipLevels": requestBody.skipLevels,
+            "levelCount": requestBody.levelCount,
+            "fiboContainer": requestBody.fiboContainer
+        })) reject();
 
-    const levels = [];
+        const levels = [];
 
-    for (let i = 0; i < requestBody.fiboContainer.childElementCount; i++) {
-        const order = requestBody.fiboContainer.children[i];
-        const level = {
-            "level": order.querySelector('#fibo-level').value,
-            "amount": order.querySelector('#profit').value,
-            "takeProfit": order.querySelector('#takeprofit').value,
-            "stopLoss": order.querySelector('#stoploss').value
+        for (let i = 0; i < requestBody.fiboContainer.childElementCount; i++) {
+            const order = requestBody.fiboContainer.children[i];
+            const level = {
+                "level": order.querySelector('#fibo-level').value,
+                "amount": order.querySelector('#profit').value,
+                "takeProfit": order.querySelector('#takeprofit').value,
+                "stopLoss": order.querySelector('#stoploss').value
+            }
+
+            levels[i] = level;
         }
 
-        levels[i] = level;
-    }
+        delete requestBody.fiboContainer;
 
-    delete requestBody.fiboContainer;
+        requestBody.levels = levels;
 
-    requestBody.levels = levels;
-    const promise = new Promise((resolve, reject) => {
-        const templateName = checkForTemplate(requestBody, templates);
-        requestBody.template = templateName;
-        resolve();
-    });
+        checkForTemplate(requestBody, templates).then((templateName) => {
+            requestBody.template = templateName;
+            requestBody.skipLevels = Number(requestBody.skipLevels);
+            requestBody.levelCount = Number(requestBody.levelCount);
 
-    promise.then(() => {
-        requestBody.skipLevels = Number(requestBody.skipLevels);
-        requestBody.levelCount = Number(requestBody.levelCount);
+            requestBody.cycleDuration += 'm';
+            requestBody.delay += 'm';
 
-        requestBody.cycleDuration += 'm';
-        requestBody.delay += 'm';
+            postAuthed(requestBody, URL, token).status;
 
-        postAuthed(requestBody, URL, token);
+            resolve();
+        });
     });
 }
 
@@ -363,7 +363,6 @@ export function setListOfTemplates(container, templates) {
     container.innerHTML = '';
     if (templates.length > 0) {
         templates.forEach(template => {
-            console.log(template.name);
             container.insertAdjacentHTML('beforeend', variables.templateListItem(template.name));
         });
     }
@@ -383,7 +382,6 @@ export function setAvailablePairs(container, avalablePairs) {
  * @returns formatting settings
  */
 export function settingsFormatter(settings) {
-    console.log('{Formatter}');
     if (Object.prototype.toString.call(settings) === '[object Array]') {
         settings.forEach((setting) => {
             if (setting.delay.includes('m') || setting.delay.includes('s')) {
@@ -544,34 +542,36 @@ function determineTemplate(activeTemplate) {
  * @returns name of the Template
  */
 function checkForTemplate(settingsJSON, templates) {
-    const settings = settingsJSON;
+    return new Promise((resolve, reject) => {
+        const settings = settingsJSON;
 
-    let name = '';
-    templates.forEach((template) => {
-        if (template.cycleType == settings.cycleType)
-            if (template.timeframe == settings.timeframe)
-                if (template.waitSignal == settings.waitSignal)
-                    if (template.cycleDuration == settings.cycleDuration)
-                        if (template.delay == settings.delay)
-                            if (template.skipPrice == settings.skipPrice)
-                                if (template.skipLevels == settings.skipLevels)
-                                    if (template.stopPrice == settings.stopPrice)
-                                        if (template.levelCount == settings.levelCount) {
-                                            for (let i = 0; i < template.levels.length; i++) {
-                                                const templateLevel = template.levels[i];
-                                                const settingsLevel = settings.levels[i];
+        let name = '';
+        templates.forEach((template) => {
+            if (template.cycleType == settings.cycleType)
+                if (template.timeframe == settings.timeframe)
+                    if (template.waitSignal == settings.waitSignal)
+                        if (template.cycleDuration == settings.cycleDuration)
+                            if (template.delay == settings.delay)
+                                if (template.skipPrice == settings.skipPrice)
+                                    if (template.skipLevels == settings.skipLevels)
+                                        if (template.stopPrice == settings.stopPrice)
+                                            if (template.levelCount == settings.levelCount) {
+                                                for (let i = 0; i < template.levels.length; i++) {
+                                                    const templateLevel = template.levels[i];
+                                                    const settingsLevel = settings.levels[i];
 
-                                                if (templateLevel.level == settingsLevel.level)
-                                                    if (templateLevel.amount == settingsLevel.amount)
-                                                        if (templateLevel.takeProfit == settingsLevel.takeProfit)
-                                                            if (templateLevel.stopLoss == settingsLevel.stopLoss) {
-                                                                name = template.name;
-                                                            }
+                                                    if (templateLevel.level == settingsLevel.level)
+                                                        if (templateLevel.amount == settingsLevel.amount)
+                                                            if (templateLevel.takeProfit == settingsLevel.takeProfit)
+                                                                if (templateLevel.stopLoss == settingsLevel.stopLoss) {
+                                                                    name = template.name;
+                                                                }
+                                                }
                                             }
-                                        }
-    });
+        });
 
-    return name;
+        resolve(name);
+    });
 }
 
 function nodeListToArray(nodeList) {
